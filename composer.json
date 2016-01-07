@@ -1,0 +1,33 @@
+{
+    "name": "nodes/bugsnag",
+    "description": "Report errors to Bugsnag from your Laravel project",
+    "keywords": [
+        "nodes",
+        "bugsnag",
+        "laravel",
+        "exceptions",
+        "reporting",
+        "error handling",
+        "error reporting"
+    ],
+    "license": "MIT",
+    "homepage": "http://nodesagency.com",
+    "authors": [
+        {
+            "name": "Morten Rugaard",
+            "email": "moru@nodes.dk",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "laravel/framework": "5.1.*",
+        "nodes/core": "^0.1",
+        "bugsnag/bugsnag": "^2.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Nodes\\Bugsnag\\": "src"
+        }
+    },
+    "minimum-stability": "stable"
+}

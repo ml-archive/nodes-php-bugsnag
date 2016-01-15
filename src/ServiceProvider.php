@@ -100,8 +100,50 @@ class ServiceProvider extends NodesAbstractServiceProvider
                 $bugsnag->setProxySettings((array) $config['proxy']);
             }
 
+            // Attach user agent data to all exceptions
+            $bugsnag->setMetaData(['User Agent' => $this->gatherUserAgentData()]);
+
             return $bugsnag;
         });
+    }
+
+    /**
+     * Gather user agent data
+     *
+     * @author Morten Rugaard <moru@nodes.dk>
+     *
+     * @access protected
+     * @return array
+     */
+    protected function gatherUserAgentData()
+    {
+        // User agent container
+        $userAgents = ['original' => null, 'nodes' => null];
+
+        // Retrieve original user agent
+        $originalUserAgent = user_agent();
+        if (!empty($originalUserAgent)) {
+            $userAgents['original'] = [
+                'browser' => $originalUserAgent->getBrowserWithVersion(),
+                'platform' => $originalUserAgent->getPlatform(),
+                'device' => $originalUserAgent->getDevice(),
+                'isMobile' => $originalUserAgent->isMobile(),
+                'isTablet' => $originalUserAgent->isTablet()
+            ];
+        }
+
+        // Retrieve nodes user agent
+        $nodesUserAgent = nodes_user_agent();
+        if (!empty($nodesUserAgent)) {
+            $userAgents['nodes'] = [
+                'version' => $nodesUserAgent->getVersion(),
+                'platform' => $nodesUserAgent->getPlatform(),
+                'device' => $nodesUserAgent->getDevice(),
+                'debug' => $nodesUserAgent->getDebug()
+            ];
+        }
+
+        return $userAgents;
     }
 
 

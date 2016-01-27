@@ -20,7 +20,7 @@
         }
     ],
     "require": {
-        "laravel/framework": "5.1.*",
+        "laravel/framework": "5.1.*||5.2.*",
         "nodes/core": "^0.1",
         "bugsnag/bugsnag": "^2.6"
     },

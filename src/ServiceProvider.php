@@ -17,7 +17,7 @@ class ServiceProvider extends NodesAbstractServiceProvider
      *
      * @const string
      */
-    const VERSION = '0.1.0';
+    const VERSION = '0.1.3';
 
     /**
      * Bootstrap the application service
@@ -50,6 +50,7 @@ class ServiceProvider extends NodesAbstractServiceProvider
     public function register()
     {
         parent::register();
+
         $this->registerBugsnag();
     }
 

@@ -26,7 +26,10 @@
     },
     "autoload": {
         "psr-4": {
-            "Nodes\\Bugsnag\\": "src"
-        }
+            "Nodes\\Bugsnag\\": "src/"
+        },
+        "files": [
+            "src/Support/Helpers/Report.php"
+        ]
     }
 }

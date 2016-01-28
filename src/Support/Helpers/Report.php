@@ -10,14 +10,18 @@ if (!function_exists('bugsnag_report')) {
      */
     function bugsnag_report(\Exception $exception)
     {
-        // Retrieve Bugsnag instance
-        $bugsnag = app('nodes.bugsnag');
-
-        // Report exception to Bugsnag
-        if ($exception instanceof \Nodes\Exceptions\Exception) {
-            $bugsnag->notifyException($exception, $exception->getMeta(), $exception->getSeverity());
-        } else {
-            $bugsnag->notifyException($exception, null, 'error');
+        try {
+            // Retrieve Bugsnag instance
+            $bugsnag = app('nodes.bugsnag');
+    
+            // Report exception to Bugsnag
+            if ($exception instanceof \Nodes\Exceptions\Exception) {
+                $bugsnag->notifyException($exception, $exception->getMeta(), $exception->getSeverity());
+            } else {
+                $bugsnag->notifyException($exception, null, 'error');
+            }   
+        } catch(\Exception $e) {
+            // Fail silent
         }
     }
 }

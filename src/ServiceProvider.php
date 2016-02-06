@@ -2,6 +2,7 @@
 namespace Nodes\Bugsnag;
 
 use Bugsnag_Client;
+use Nodes\AbstractServiceProvider;
 use Nodes\Bugsnag\Exceptions\Handler as BugsnagHandler;
 
 /**
@@ -32,7 +33,7 @@ class ServiceProvider extends AbstractServiceProvider
      *
      * @const string
      */
-    const VERSION = '0.1.3';
+    const VERSION = '0.1.4';
 
     /**
      * Bootstrap the application service

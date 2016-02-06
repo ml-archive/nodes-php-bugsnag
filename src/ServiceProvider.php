@@ -2,7 +2,6 @@
 namespace Nodes\Bugsnag;
 
 use Bugsnag_Client;
-use Nodes\AbstractServiceProvider as NodesAbstractServiceProvider;
 use Nodes\Bugsnag\Exceptions\Handler as BugsnagHandler;
 
 /**
@@ -10,8 +9,24 @@ use Nodes\Bugsnag\Exceptions\Handler as BugsnagHandler;
  *
  * @package Nodes\Bugsnag
  */
-class ServiceProvider extends NodesAbstractServiceProvider
+class ServiceProvider extends AbstractServiceProvider
 {
+    /**
+     * Package name
+     *
+     * @var string|null
+     */
+    protected $package = 'bugsnag';
+
+    /**
+     * Array of configs to copy
+     *
+     * @var array
+     */
+    protected $configs = [
+        'config/bugsnag.php' => 'config/nodes/bugsnag.php'
+    ];
+
     /**
      * Nodes Bugsnag version
      *

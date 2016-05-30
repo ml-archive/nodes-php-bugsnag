@@ -2,7 +2,7 @@
 namespace Nodes\Bugsnag;
 
 use Bugsnag_Client;
-use Nodes\AbstractServiceProvider;
+use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 use Nodes\Bugsnag\Exceptions\Handler as BugsnagHandler;
 
 /**
@@ -10,30 +10,14 @@ use Nodes\Bugsnag\Exceptions\Handler as BugsnagHandler;
  *
  * @package Nodes\Bugsnag
  */
-class ServiceProvider extends AbstractServiceProvider
+class ServiceProvider extends IlluminateServiceProvider
 {
-    /**
-     * Package name
-     *
-     * @var string|null
-     */
-    protected $package = 'bugsnag';
-
-    /**
-     * Array of configs to copy
-     *
-     * @var array
-     */
-    protected $configs = [
-        'config/bugsnag.php' => 'config/nodes/bugsnag.php'
-    ];
-
     /**
      * Nodes Bugsnag version
      *
      * @const string
      */
-    const VERSION = '0.1.4';
+    const VERSION = '1.0';
 
     /**
      * Bootstrap the application service
@@ -53,6 +37,9 @@ class ServiceProvider extends AbstractServiceProvider
                 return new BugsnagHandler($app['log']);
             });
         }
+
+        // Register publish groups
+        $this->publishGroups();
     }
 
     /**
@@ -68,6 +55,22 @@ class ServiceProvider extends AbstractServiceProvider
         parent::register();
 
         $this->registerBugsnag();
+    }
+
+    /**
+     * Register publish groups
+     *
+     * @author Morten Rugaard <moru@nodes.dk>
+     *
+     * @access protected
+     * @return void
+     */
+    protected function publishGroups()
+    {
+        // Config files
+        $this->publishes([
+            __DIR__ . '/../config/bugsnag.php' => config_path('nodes/bugsnag.php'),
+        ], 'config');
     }
 
     /**

@@ -5,10 +5,10 @@ if (!function_exists('bugsnag_report')) {
      *
      * @author Morten Rugaard <moru@nodes.dk>
      *
-     * @param  \Exception $exception
+     * @param  \Exception|\Throwable $exception
      * @return void
      */
-    function bugsnag_report(\Exception $exception)
+    function bugsnag_report($exception)
     {
         // Retrieve Bugsnag instance
         $bugsnag = app('nodes.bugsnag');

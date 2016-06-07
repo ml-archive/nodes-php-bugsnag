@@ -28,7 +28,7 @@ class Handler extends AppHandler
         try {
             if ($e instanceof NodesException && $e->getReport()) {
                 app('nodes.bugsnag')->notifyException($e, $e->getMeta(), $e->getSeverity());
-            } elseif (!$e instanceof NodesException) {
+            } elseif (!$e instanceof NodesException && $this->shouldReport($e)) {
                 app('nodes.bugsnag')->notifyException($e, null, 'error');
             }
         } catch (Exception $e) {

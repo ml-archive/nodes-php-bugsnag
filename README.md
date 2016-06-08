@@ -26,7 +26,7 @@ To install this package you will need:
 
 You must then modify your `composer.json` file and run `composer update` to include the latest version of the package in your project.
 
-```
+```json
 "require": {
     "nodes/bugsnag": "^1.0"
 }
@@ -34,7 +34,7 @@ You must then modify your `composer.json` file and run `composer update` to incl
 
 Or you can run the composer require command from your terminal.
 
-```
+```bash
 composer require nodes/bugsnag:^1.0
 ```
 
@@ -42,19 +42,19 @@ composer require nodes/bugsnag:^1.0
 
 Setup service provider in config/app.php
 
-```
+```php
 Nodes\Bugsnag\ServiceProvider::class
 ```
 
 Publish config files
 
-```
+```bash
 php artisan vendor:publish --provider="Nodes\Bugsnag\ServiceProvider"
 ```
 
 If you want to overwrite any existing config files use the `--force` parameter
 
-```
+```bash
 php artisan vendor:publish --provider="Nodes\Bugsnag\ServiceProvider" --force
 ```
 
@@ -69,7 +69,7 @@ Only thing you need make sure, is that you've entered the correct `API_KEY` in t
 It happens once in a while, that you might need to `try {} catch {}` stuff and when you're catching exception you wish to surpress it for the user,
 but you would actually also like to be notified about it in Bugsnag. Then you can use the global helper method `bugsnag_report` to that.
 
-```
+```php
 function bugsnag_report(\Exception $exception)
 ```
 

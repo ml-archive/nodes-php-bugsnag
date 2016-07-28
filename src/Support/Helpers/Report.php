@@ -1,7 +1,8 @@
 <?php
-if (!function_exists('bugsnag_report')) {
+
+if (! function_exists('bugsnag_report')) {
     /**
-     * Report exception to Bugsnag
+     * Report exception to Bugsnag.
      *
      * @author Morten Rugaard <moru@nodes.dk>
      *

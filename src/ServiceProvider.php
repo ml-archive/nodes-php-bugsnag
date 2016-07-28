@@ -1,4 +1,5 @@
 <?php
+
 namespace Nodes\Bugsnag;
 
 use Bugsnag_Client;
@@ -6,25 +7,22 @@ use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 use Nodes\Bugsnag\Exceptions\Handler as BugsnagHandler;
 
 /**
- * Class ServiceProvider
- *
- * @package Nodes\Bugsnag
+ * Class ServiceProvider.
  */
 class ServiceProvider extends IlluminateServiceProvider
 {
     /**
-     * Nodes Bugsnag version
+     * Nodes Bugsnag version.
      *
      * @const string
      */
     const VERSION = '1.0';
 
     /**
-     * Bootstrap the application service
+     * Bootstrap the application service.
      *
      * @author Morten Rugaard <moru@nodes.dk>
      *
-     * @access public
      * @return void
      */
     public function boot()
@@ -35,7 +33,7 @@ class ServiceProvider extends IlluminateServiceProvider
         // we'll re-bind the default Exception Handler to use our Bugsnag Handler
         // so exceptions will be reported to Bugsnag.
         if (in_array($this->app->environment(), config('nodes.bugsnag.notify_release_stages', []))) {
-            $this->app->singleton('Illuminate\Contracts\Debug\ExceptionHandler', function($app) {
+            $this->app->singleton('Illuminate\Contracts\Debug\ExceptionHandler', function ($app) {
                 return new BugsnagHandler($app['log']);
             });
         }
@@ -45,11 +43,10 @@ class ServiceProvider extends IlluminateServiceProvider
     }
 
     /**
-     * Register the service provider
+     * Register the service provider.
      *
      * @author Morten Rugaard <moru@nodes.dk>
      *
-     * @access public
      * @return void
      */
     public function register()
@@ -58,27 +55,25 @@ class ServiceProvider extends IlluminateServiceProvider
     }
 
     /**
-     * Register publish groups
+     * Register publish groups.
      *
      * @author Morten Rugaard <moru@nodes.dk>
      *
-     * @access protected
      * @return void
      */
     protected function publishGroups()
     {
         // Config files
         $this->publishes([
-            __DIR__ . '/../config/bugsnag.php' => config_path('nodes/bugsnag.php'),
+            __DIR__.'/../config/bugsnag.php' => config_path('nodes/bugsnag.php'),
         ], 'config');
     }
 
     /**
-     * Register Bugsnag instance
+     * Register Bugsnag instance.
      *
      * @author Morten Rugaard <moru@nodes.dk>
      *
-     * @access proteected
      * @return void
      */
     protected function registerBugsnag()
@@ -97,26 +92,26 @@ class ServiceProvider extends IlluminateServiceProvider
                     ->setNotifier([
                         'name' => 'Nodes Bugsnag Laravel',
                         'version' => self::VERSION,
-                        'url' => 'http://packagist.com/nodes/bugsnag'
+                        'url' => 'http://packagist.com/nodes/bugsnag',
                     ]);
 
             // Set notify release stages
-            if (!empty($config['notify_release_stages'])) {
+            if (! empty($config['notify_release_stages'])) {
                 $bugsnag->setNotifyReleaseStages((array) $config['notify_release_stages']);
             }
 
             // Set endpoint
-            if (!empty($config['endpoint'])) {
+            if (! empty($config['endpoint'])) {
                 $bugsnag->setEndpoint($config['endpoint']);
             }
 
             // Set filters
-            if (!empty($config['filters'])) {
+            if (! empty($config['filters'])) {
                 $bugsnag->setFilters((array) $config['filters']);
             }
 
             // Set proxy settings
-            if (!empty($config['proxy'])) {
+            if (! empty($config['proxy'])) {
                 $bugsnag->setProxySettings((array) $config['proxy']);
             }
 
@@ -128,11 +123,10 @@ class ServiceProvider extends IlluminateServiceProvider
     }
 
     /**
-     * Gather user agent data
+     * Gather user agent data.
      *
      * @author Morten Rugaard <moru@nodes.dk>
      *
-     * @access protected
      * @return array
      */
     protected function gatherUserAgentData()
@@ -142,37 +136,35 @@ class ServiceProvider extends IlluminateServiceProvider
 
         // Retrieve original user agent
         $originalUserAgent = user_agent();
-        if (!empty($originalUserAgent)) {
+        if (! empty($originalUserAgent)) {
             $userAgents['original'] = [
                 'browser' => $originalUserAgent->getBrowserWithVersion(),
                 'platform' => $originalUserAgent->getPlatform(),
                 'device' => $originalUserAgent->getDevice(),
                 'isMobile' => $originalUserAgent->isMobile(),
-                'isTablet' => $originalUserAgent->isTablet()
+                'isTablet' => $originalUserAgent->isTablet(),
             ];
         }
 
         // Retrieve nodes user agent
         $nodesUserAgent = nodes_user_agent();
-        if (!empty($nodesUserAgent)) {
+        if (! empty($nodesUserAgent)) {
             $userAgents['nodes'] = [
                 'version' => $nodesUserAgent->getVersion(),
                 'platform' => $nodesUserAgent->getPlatform(),
                 'device' => $nodesUserAgent->getDevice(),
-                'debug' => $nodesUserAgent->getDebug()
+                'debug' => $nodesUserAgent->getDebug(),
             ];
         }
 
         return $userAgents;
     }
 
-
     /**
-     * Get the services provided by the provider
+     * Get the services provided by the provider.
      *
      * @author Morten Rugaard <moru@nodes.dk>
      *
-     * @access public
      * @return array
      */
     public function provides()

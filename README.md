@@ -10,6 +10,7 @@ A Laravel wrapper for [Bugsnag](http://bugsnag.com) [Laravel](http://laravel.com
 [![Star repository on GitHub](https://img.shields.io/github/stars/nodes-php/bugsnag.svg?style=social&label=Star)](https://github.com/nodes-php/bugsnag/stargazers)
 [![Watch repository on GitHub](https://img.shields.io/github/watchers/nodes-php/bugsnag.svg?style=social&label=Watch)](https://github.com/nodes-php/bugsnag/watchers)
 [![Fork repository on GitHub](https://img.shields.io/github/forks/nodes-php/bugsnag.svg?style=social&label=Fork)](https://github.com/nodes-php/bugsnag/network)
+[![StyleCI](https://styleci.io/repos/48364252/shield)](https://styleci.io/repos/48364252)
 
 ## Introduction
 

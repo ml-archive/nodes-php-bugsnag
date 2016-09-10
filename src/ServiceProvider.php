@@ -27,8 +27,6 @@ class ServiceProvider extends IlluminateServiceProvider
      */
     public function boot()
     {
-        parent::boot();
-
         // If current environment is in the array of "notify release stages",
         // we'll re-bind the default Exception Handler to use our Bugsnag Handler
         // so exceptions will be reported to Bugsnag.

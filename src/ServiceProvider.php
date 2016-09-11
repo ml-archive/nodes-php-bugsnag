@@ -32,7 +32,7 @@ class ServiceProvider extends IlluminateServiceProvider
         // so exceptions will be reported to Bugsnag.
         if (in_array($this->app->environment(), config('nodes.bugsnag.notify_release_stages', []))) {
             $this->app->singleton('Illuminate\Contracts\Debug\ExceptionHandler', function ($app) {
-                return new BugsnagHandler($app['log']);
+                return app(BugsnagHandler::class);
             });
         }
 

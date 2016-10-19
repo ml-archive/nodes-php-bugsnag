@@ -22,3 +22,24 @@ if (! function_exists('bugsnag_report')) {
         }
     }
 }
+
+if (! function_exists('leave_breadcrumb')) {
+    /**
+     * Leave a breadcrumb for Bugsnag
+     *
+     * @author Rasmus Ebbesen <re@nodes.dk>
+     *
+     * @param string $name
+     * @param string $type
+     * @param array $metaData
+     * @see https://docs.bugsnag.com/platforms/php/laravel/#logging-breadcrumbs
+     */
+    function leave_breadcrumb($name, $type = \Bugsnag\Breadcrumbs\Breadcrumb::ERROR_TYPE, array $metaData = [])
+    {
+        // Retrieve bugsnag instance
+        $bugsnag = app('nodes.bugsnag');
+
+        // leave breadcrumb
+        $bugsnag->leaveBreadcrumb($name, $type, $metaData);
+    }
+}

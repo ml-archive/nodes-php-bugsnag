@@ -2,7 +2,8 @@
 
 namespace Nodes\Bugsnag;
 
-use Bugsnag_Client;
+use Bugsnag\Client;
+use Bugsnag\Configuration;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 use Nodes\Bugsnag\Exceptions\Handler as BugsnagHandler;
 
@@ -16,7 +17,7 @@ class ServiceProvider extends IlluminateServiceProvider
      *
      * @const string
      */
-    const VERSION = '1.0';
+    const VERSION = '2.0';
 
     /**
      * Bootstrap the application service.
@@ -81,40 +82,39 @@ class ServiceProvider extends IlluminateServiceProvider
             $config = config('nodes.bugsnag');
 
             // Initiate Bugsnag client
-            $bugsnag = new Bugsnag_Client($config['api_key']);
-            $bugsnag->setStripPath(base_path())
-                    ->setProjectRoot(app_path())
-                    ->setAutoNotify(false)
-                    ->setBatchSending(false)
-                    ->setReleaseStage($app->environment())
-                    ->setNotifier([
-                        'name' => 'Nodes Bugsnag Laravel',
-                        'version' => self::VERSION,
-                        'url' => 'http://packagist.com/nodes/bugsnag',
-                    ]);
+            if (! empty($config['proxy'])) {
+                $guzzleClient = new \GuzzleHttp\Client([
+                    'base_uri' => $config['endpoint'],
+                    'proxy' => $config['proxy'],
+                ]);
+
+                $bugsnag = new Client(new Configuration($config['api_key']), null, $guzzleClient);
+            } else {
+                $bugsnag = Client::make();
+            }
+
+            $bugsnag->getConfig()->setStripPath(base_path());
+            $bugsnag->getConfig()->setProjectRoot(app_path());
+            $bugsnag->getConfig()->setReleaseStage(env('APP_ENVIRONMENT'));
+            $bugsnag->getConfig()->setBatchSending(false);
+            $bugsnag->getConfig()->setNotifier([
+                'name' => 'Nodes Bugsnag Laravel',
+                'version' => self::VERSION,
+                'url' => 'http://packagist.com/nodes/bugsnag',
+            ]);
 
             // Set notify release stages
             if (! empty($config['notify_release_stages'])) {
-                $bugsnag->setNotifyReleaseStages((array) $config['notify_release_stages']);
-            }
-
-            // Set endpoint
-            if (! empty($config['endpoint'])) {
-                $bugsnag->setEndpoint($config['endpoint']);
+                $bugsnag->getConfig()->setNotifyReleaseStages((array) $config['notify_release_stages']);
             }
 
             // Set filters
             if (! empty($config['filters'])) {
-                $bugsnag->setFilters((array) $config['filters']);
-            }
-
-            // Set proxy settings
-            if (! empty($config['proxy'])) {
-                $bugsnag->setProxySettings((array) $config['proxy']);
+                $bugsnag->getConfig()->setFilters((array) $config['filters']);
             }
 
             // Attach user agent data to all exceptions
-            $bugsnag->setMetaData(['User Agent' => $this->gatherUserAgentData()]);
+            $bugsnag->getConfig()->setMetaData(['User Agent' => $this->gatherUserAgentData()]);
 
             return $bugsnag;
         });

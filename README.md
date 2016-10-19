@@ -44,7 +44,8 @@ composer require nodes/bugsnag:^1.0
 Setup service provider in config/app.php
 
 ```php
-Nodes\Bugsnag\ServiceProvider::class
+Nodes\ServiceProvider::class,
+Nodes\Bugsnag\ServiceProvider::class,
 ```
 
 Publish config files

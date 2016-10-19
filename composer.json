@@ -22,7 +22,7 @@
     "require": {
         "laravel/framework": "5.1.*||5.2.*||5.3.*",
         "nodes/core": "^1.0",
-        "bugsnag/bugsnag": "^2.6"
+        "bugsnag/bugsnag": "^3.4"
     },
     "autoload": {
         "psr-4": {

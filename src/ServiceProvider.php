@@ -2,8 +2,13 @@
 
 namespace Nodes\Bugsnag;
 
+use Bugsnag\BugsnagLaravel\LaravelLogger;
+use Bugsnag\BugsnagLaravel\Request\LaravelResolver;
 use Bugsnag\Client;
 use Bugsnag\Configuration;
+use Bugsnag\PsrLogger\MultiLogger;
+use Bugsnag\Report;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 use Nodes\Bugsnag\Exceptions\Handler as BugsnagHandler;
 
@@ -77,27 +82,14 @@ class ServiceProvider extends IlluminateServiceProvider
      */
     protected function registerBugsnag()
     {
-        $this->app->singleton('nodes.bugsnag', function ($app) {
+        $this->app->singleton('nodes.bugsnag', function (Container $app) {
             // Retrieve bugsnag settings
-            $config = config('nodes.bugsnag');
-
-            // Initiate Bugsnag client
-            if (! empty($config['proxy'])) {
-                $guzzleClient = new \GuzzleHttp\Client([
-                    'base_uri' => $config['endpoint'],
-                    'proxy' => $config['proxy'],
-                ]);
-
-                $bugsnag = new Client(new Configuration($config['api_key']), null, $guzzleClient);
-            } else {
-                $bugsnag = Client::make();
-            }
-
-            $bugsnag->getConfig()->setStripPath(base_path());
-            $bugsnag->getConfig()->setProjectRoot(app_path());
-            $bugsnag->getConfig()->setReleaseStage(env('APP_ENVIRONMENT'));
-            $bugsnag->getConfig()->setBatchSending(false);
-            $bugsnag->getConfig()->setNotifier([
+            $config = $app->config->get('nodes.bugsnag');
+            $bugsnag = new Client(new Configuration($config['api_key']), new LaravelResolver($app), $this->getGuzzle($config));
+            $this->setupPaths($bugsnag, $app->basePath(), $app->path(), base_path(), app_path());
+            $bugsnag->setReleaseStage($app->environment());
+            $bugsnag->setBatchSending(false);
+            $bugsnag->setNotifier([
                 'name' => 'Nodes Bugsnag Laravel',
                 'version' => self::VERSION,
                 'url' => 'http://packagist.com/nodes/bugsnag',
@@ -105,19 +97,35 @@ class ServiceProvider extends IlluminateServiceProvider
 
             // Set notify release stages
             if (! empty($config['notify_release_stages'])) {
-                $bugsnag->getConfig()->setNotifyReleaseStages((array) $config['notify_release_stages']);
+                $bugsnag->setNotifyReleaseStages((array) $config['notify_release_stages']);
             }
 
             // Set filters
             if (! empty($config['filters'])) {
-                $bugsnag->getConfig()->setFilters((array) $config['filters']);
+                $bugsnag->setFilters((array) $config['filters']);
             }
 
+            $bugsnag->registerDefaultCallbacks();
+
             // Attach user agent data to all exceptions
-            $bugsnag->getConfig()->setMetaData(['User Agent' => $this->gatherUserAgentData()]);
+            $bugsnag->registerCallback(function(Report $report) {
+                $report->setMetaData(['User Agent' => $this->gatherUserAgentData()]);
+            });
 
             return $bugsnag;
         });
+
+        $this->app->singleton('bugsnag.logger', function (Container $app) {
+            return new LaravelLogger($app['nodes.bugsnag']);
+        });
+
+        $this->app->singleton('bugsnag.multi', function (Container $app) {
+            return new MultiLogger([$app['log'], $app['bugsnag.logger']]);
+        });
+
+        $this->app->alias('nodes.bugsnag', Client::class);
+        $this->app->alias('bugsnag.logger', LaravelLogger::class);
+        $this->app->alias('bugsnag.multi', MultiLogger::class);
     }
 
     /**
@@ -159,6 +167,58 @@ class ServiceProvider extends IlluminateServiceProvider
     }
 
     /**
+     * Get the guzzle client instance.
+     * from bugsnag/bugsnag-laravel package
+     *
+     * @param array $config
+     *
+     * @return \GuzzleHttp\ClientInterface
+     */
+    protected function getGuzzle(array $config)
+    {
+        $options = [];
+        if (isset($config['proxy']) && $config['proxy']) {
+            if (isset($config['proxy']['http']) && php_sapi_name() != 'cli') {
+                unset($config['proxy']['http']);
+            }
+            $options['proxy'] = $config['proxy'];
+        }
+        return Client::makeGuzzle(isset($config['endpoint']) ? $config['endpoint'] : null, $options);
+    }
+
+    /**
+     * Setup the client paths.
+     * from bugsnag/bugsnag-laravel package
+     *
+     * @param \Bugsnag\Client $client
+     * @param string          $base
+     * @param string          $path
+     * @param string|null     $strip
+     * @param string|null     $project
+     *
+     * @return void
+     */
+    protected function setupPaths(Client $client, $base, $path, $strip, $project)
+    {
+        if ($strip) {
+            $client->setStripPath($strip);
+            if (!$project) {
+                $client->setProjectRoot("{$strip}/app");
+            }
+            return;
+        }
+        if ($project) {
+            if ($base && substr($project, 0, strlen($base)) === $base) {
+                $client->setStripPath($base);
+            }
+            $client->setProjectRoot($project);
+            return;
+        }
+        $client->setStripPath($base);
+        $client->setProjectRoot($path);
+    }
+
+    /**
      * Get the services provided by the provider.
      *
      * @author Morten Rugaard <moru@nodes.dk>
@@ -167,6 +227,6 @@ class ServiceProvider extends IlluminateServiceProvider
      */
     public function provides()
     {
-        return ['nodes.bugsnag'];
+        return ['nodes.bugsnag', 'bugsnag.logger', 'bugsnag.multi'];
     }
 }

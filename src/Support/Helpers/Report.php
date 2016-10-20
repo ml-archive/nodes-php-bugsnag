@@ -11,14 +11,16 @@ if (! function_exists('bugsnag_report')) {
      */
     function bugsnag_report($exception)
     {
-        // Retrieve Bugsnag instance
-        $bugsnag = app('nodes.bugsnag');
-
         // Report exception to Bugsnag
         if ($exception instanceof \Nodes\Exceptions\Exception) {
-            $bugsnag->notifyException($exception, $exception->getMeta(), $exception->getSeverity());
+            app('nodes.bugsnag')->notifyException($exception, function(\Bugsnag\Report $report) use ($exception) {
+                $report->setMetaData($exception->getMeta(), true);
+                $report->setSeverity($exception->getSeverity());
+            });
         } else {
-            $bugsnag->notifyException($exception, null, 'error');
+            app('nodes.bugsnag')->notifyException($exception, function(\Bugsnag\Report $report) {
+                $report->setSeverity('error');
+            });
         }
     }
 }

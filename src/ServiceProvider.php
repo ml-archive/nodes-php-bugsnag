@@ -19,6 +19,7 @@ class ServiceProvider extends IlluminateServiceProvider
 {
     /**
      * Nodes Bugsnag version.
+     * Bump this on major version only!
      *
      * @const string
      */

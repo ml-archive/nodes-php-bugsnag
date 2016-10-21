@@ -10,6 +10,8 @@ use Bugsnag\PsrLogger\MultiLogger;
 use Bugsnag\Report;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Support\Facades\Queue;
 use Nodes\Bugsnag\Exceptions\Handler as BugsnagHandler;
 
 /**
@@ -44,6 +46,9 @@ class ServiceProvider extends IlluminateServiceProvider
 
         // Register publish groups
         $this->publishGroups();
+
+        // Failed jobs listener
+        $this->registerFailedJobsListener();
     }
 
     /**
@@ -222,6 +227,44 @@ class ServiceProvider extends IlluminateServiceProvider
 
         $client->setStripPath($base);
         $client->setProjectRoot($path);
+    }
+
+    /**
+     * Register an event listener to trigger
+     * on failed jobs from queues
+     *
+     * @author Rasmus Ebbesen <re@nodes.dk>
+     *
+     * @access protected
+     * @return void
+     */
+    protected function registerFailedJobsListener()
+    {
+        if (!in_array($this->app->environment(), config('nodes.bugsnag.notify_release_stages', []))) {
+            return;
+        }
+
+        $shouldReport = config('nodes.bugsnag.report_failed_jobs');
+
+        if ($shouldReport) {
+            Queue::failing(function(JobFailed $event) {
+                $exception = $event->exception;
+                $meta = [
+                    'job' => [
+                        'name' => $event->job->getName(),
+                        'queue' => $event->job->getQueue(),
+                        'raw_body' => $event->job->getRawBody(),
+                    ],
+                    'connection' => [
+                        'name' => $event->connectionName,
+                    ]
+                ];
+
+                app('nodes.bugsnag')->notifyException($exception, function(\Bugsnag\Report $report) use ($meta) {
+                    $report->setMetaData($meta, true);
+                });
+            });
+        }
     }
 
     /**

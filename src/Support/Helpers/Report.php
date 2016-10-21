@@ -11,6 +11,10 @@ if (! function_exists('bugsnag_report')) {
      */
     function bugsnag_report($exception)
     {
+        if (!in_array(app()->environment(), config('nodes.bugsnag.notify_release_stages', []))) {
+            return;
+        }
+
         // Report exception to Bugsnag
         if ($exception instanceof \Nodes\Exceptions\Exception) {
             app('nodes.bugsnag')->notifyException($exception, function(\Bugsnag\Report $report) use ($exception) {
@@ -38,6 +42,10 @@ if (! function_exists('leave_breadcrumb')) {
      */
     function leave_breadcrumb($name, $type = \Bugsnag\Breadcrumbs\Breadcrumb::ERROR_TYPE, array $metaData = [])
     {
+        if (!in_array(app()->environment(), config('nodes.bugsnag.notify_release_stages', []))) {
+            return;
+        }
+
         // Retrieve bugsnag instance
         $bugsnag = app('nodes.bugsnag');
 

@@ -83,9 +83,14 @@ class ServiceProvider extends IlluminateServiceProvider
      */
     protected function registerBugsnag()
     {
-        $this->app->singleton('nodes.bugsnag', function (Container $app) {
+        $config = config('nodes.bugsnag');
+
+        if (!in_array($this->app->environment(), config('nodes.bugsnag.notify_release_stages', []))) {
+            return;
+        }
+
+        $this->app->singleton('nodes.bugsnag', function (Container $app) use ($config) {
             // Retrieve bugsnag settings
-            $config = $app->config->get('nodes.bugsnag');
             $bugsnag = new Client(new Configuration($config['api_key']), new LaravelResolver($app), $this->getGuzzle($config));
             $this->setupPaths($bugsnag, $app->basePath(), $app->path(), base_path(), app_path());
             $bugsnag->setReleaseStage($app->environment());

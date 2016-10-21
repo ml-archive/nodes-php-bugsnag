@@ -230,7 +230,8 @@ class ServiceProvider extends IlluminateServiceProvider
     }
 
     /**
-     * registerFailedJobsListener
+     * Register an event listener to trigger
+     * on failed jobs from queues
      *
      * @author Rasmus Ebbesen <re@nodes.dk>
      *

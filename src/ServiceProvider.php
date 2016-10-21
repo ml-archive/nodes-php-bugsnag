@@ -77,6 +77,7 @@ class ServiceProvider extends IlluminateServiceProvider
      * Register Bugsnag instance.
      *
      * @author Morten Rugaard <moru@nodes.dk>
+     * @author Rasmus Ebbesen <re@nodes.dk>
      *
      * @return void
      */
@@ -171,7 +172,6 @@ class ServiceProvider extends IlluminateServiceProvider
      * from bugsnag/bugsnag-laravel package
      *
      * @param array $config
-     *
      * @return \GuzzleHttp\ClientInterface
      */
     protected function getGuzzle(array $config)
@@ -195,7 +195,6 @@ class ServiceProvider extends IlluminateServiceProvider
      * @param string          $path
      * @param string|null     $strip
      * @param string|null     $project
-     *
      * @return void
      */
     protected function setupPaths(Client $client, $base, $path, $strip, $project)
@@ -207,6 +206,7 @@ class ServiceProvider extends IlluminateServiceProvider
             }
             return;
         }
+
         if ($project) {
             if ($base && substr($project, 0, strlen($base)) === $base) {
                 $client->setStripPath($base);
@@ -214,6 +214,7 @@ class ServiceProvider extends IlluminateServiceProvider
             $client->setProjectRoot($project);
             return;
         }
+
         $client->setStripPath($base);
         $client->setProjectRoot($path);
     }

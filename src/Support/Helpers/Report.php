@@ -11,14 +11,45 @@ if (! function_exists('bugsnag_report')) {
      */
     function bugsnag_report($exception)
     {
-        // Retrieve Bugsnag instance
-        $bugsnag = app('nodes.bugsnag');
+        if (!in_array(app()->environment(), config('nodes.bugsnag.notify_release_stages', []))) {
+            return;
+        }
 
         // Report exception to Bugsnag
         if ($exception instanceof \Nodes\Exceptions\Exception) {
-            $bugsnag->notifyException($exception, $exception->getMeta(), $exception->getSeverity());
+            app('nodes.bugsnag')->notifyException($exception, function(\Bugsnag\Report $report) use ($exception) {
+                $report->setMetaData($exception->getMeta(), true);
+                $report->setSeverity($exception->getSeverity());
+            });
         } else {
-            $bugsnag->notifyException($exception, null, 'error');
+            app('nodes.bugsnag')->notifyException($exception, function(\Bugsnag\Report $report) {
+                $report->setSeverity('error');
+            });
         }
+    }
+}
+
+if (! function_exists('leave_breadcrumb')) {
+    /**
+     * Leave a breadcrumb for Bugsnag
+     *
+     * @author Rasmus Ebbesen <re@nodes.dk>
+     *
+     * @param string $name
+     * @param string $type
+     * @param array $metaData
+     * @see https://docs.bugsnag.com/platforms/php/laravel/#logging-breadcrumbs
+     */
+    function leave_breadcrumb($name, $type = \Bugsnag\Breadcrumbs\Breadcrumb::ERROR_TYPE, array $metaData = [])
+    {
+        if (!in_array(app()->environment(), config('nodes.bugsnag.notify_release_stages', []))) {
+            return;
+        }
+
+        // Retrieve bugsnag instance
+        $bugsnag = app('nodes.bugsnag');
+
+        // leave breadcrumb
+        $bugsnag->leaveBreadcrumb($name, $type, $metaData);
     }
 }

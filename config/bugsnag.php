@@ -33,10 +33,10 @@ return [
     |
     | Set which release stages should send notifications to Bugsnag.
     |
-    | Example: ['development', 'production']
+    | Example: ['local', 'development', 'staging', 'production']
     |
     */
-    'notify_release_stages' => ['staging', 'production'],
+    'notify_release_stages' => ['development', 'staging', 'production'],
 
     /*
     |--------------------------------------------------------------------------

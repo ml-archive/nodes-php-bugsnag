@@ -2,7 +2,13 @@
 
 namespace Nodes\Bugsnag;
 
-use Bugsnag_Client;
+use Bugsnag\BugsnagLaravel\LaravelLogger;
+use Bugsnag\BugsnagLaravel\Request\LaravelResolver;
+use Bugsnag\Client;
+use Bugsnag\Configuration;
+use Bugsnag\PsrLogger\MultiLogger;
+use Bugsnag\Report;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 use Nodes\Bugsnag\Exceptions\Handler as BugsnagHandler;
 
@@ -16,7 +22,7 @@ class ServiceProvider extends IlluminateServiceProvider
      *
      * @const string
      */
-    const VERSION = '1.0';
+    const VERSION = '2.0';
 
     /**
      * Bootstrap the application service.
@@ -71,36 +77,33 @@ class ServiceProvider extends IlluminateServiceProvider
      * Register Bugsnag instance.
      *
      * @author Morten Rugaard <moru@nodes.dk>
+     * @author Rasmus Ebbesen <re@nodes.dk>
      *
      * @return void
      */
     protected function registerBugsnag()
     {
-        $this->app->singleton('nodes.bugsnag', function ($app) {
-            // Retrieve bugsnag settings
-            $config = config('nodes.bugsnag');
+        $config = config('nodes.bugsnag');
 
-            // Initiate Bugsnag client
-            $bugsnag = new Bugsnag_Client($config['api_key']);
-            $bugsnag->setStripPath(base_path())
-                    ->setProjectRoot(app_path())
-                    ->setAutoNotify(false)
-                    ->setBatchSending(false)
-                    ->setReleaseStage($app->environment())
-                    ->setNotifier([
-                        'name' => 'Nodes Bugsnag Laravel',
-                        'version' => self::VERSION,
-                        'url' => 'http://packagist.com/nodes/bugsnag',
-                    ]);
+        if (!in_array($this->app->environment(), config('nodes.bugsnag.notify_release_stages', []))) {
+            return;
+        }
+
+        $this->app->singleton('nodes.bugsnag', function (Container $app) use ($config) {
+            // Retrieve bugsnag settings
+            $bugsnag = new Client(new Configuration($config['api_key']), new LaravelResolver($app), $this->getGuzzle($config));
+            $this->setupPaths($bugsnag, $app->basePath(), $app->path(), base_path(), app_path());
+            $bugsnag->setReleaseStage($app->environment());
+            $bugsnag->setBatchSending(false);
+            $bugsnag->setNotifier([
+                'name' => 'Nodes Bugsnag Laravel',
+                'version' => self::VERSION,
+                'url' => 'http://packagist.com/nodes/bugsnag',
+            ]);
 
             // Set notify release stages
             if (! empty($config['notify_release_stages'])) {
                 $bugsnag->setNotifyReleaseStages((array) $config['notify_release_stages']);
-            }
-
-            // Set endpoint
-            if (! empty($config['endpoint'])) {
-                $bugsnag->setEndpoint($config['endpoint']);
             }
 
             // Set filters
@@ -108,16 +111,27 @@ class ServiceProvider extends IlluminateServiceProvider
                 $bugsnag->setFilters((array) $config['filters']);
             }
 
-            // Set proxy settings
-            if (! empty($config['proxy'])) {
-                $bugsnag->setProxySettings((array) $config['proxy']);
-            }
+            $bugsnag->registerDefaultCallbacks();
 
             // Attach user agent data to all exceptions
-            $bugsnag->setMetaData(['User Agent' => $this->gatherUserAgentData()]);
+            $bugsnag->registerCallback(function(Report $report) {
+                $report->setMetaData(['User Agent' => $this->gatherUserAgentData()]);
+            });
 
             return $bugsnag;
         });
+
+        $this->app->singleton('bugsnag.logger', function (Container $app) {
+            return new LaravelLogger($app['nodes.bugsnag']);
+        });
+
+        $this->app->singleton('bugsnag.multi', function (Container $app) {
+            return new MultiLogger([$app['log'], $app['bugsnag.logger']]);
+        });
+
+        $this->app->alias('nodes.bugsnag', Client::class);
+        $this->app->alias('bugsnag.logger', LaravelLogger::class);
+        $this->app->alias('bugsnag.multi', MultiLogger::class);
     }
 
     /**
@@ -159,6 +173,58 @@ class ServiceProvider extends IlluminateServiceProvider
     }
 
     /**
+     * Get the guzzle client instance.
+     * from bugsnag/bugsnag-laravel package
+     *
+     * @param array $config
+     * @return \GuzzleHttp\ClientInterface
+     */
+    protected function getGuzzle(array $config)
+    {
+        $options = [];
+        if (isset($config['proxy']) && $config['proxy']) {
+            if (isset($config['proxy']['http']) && php_sapi_name() != 'cli') {
+                unset($config['proxy']['http']);
+            }
+            $options['proxy'] = $config['proxy'];
+        }
+        return Client::makeGuzzle(isset($config['endpoint']) ? $config['endpoint'] : null, $options);
+    }
+
+    /**
+     * Setup the client paths.
+     * from bugsnag/bugsnag-laravel package
+     *
+     * @param \Bugsnag\Client $client
+     * @param string          $base
+     * @param string          $path
+     * @param string|null     $strip
+     * @param string|null     $project
+     * @return void
+     */
+    protected function setupPaths(Client $client, $base, $path, $strip, $project)
+    {
+        if ($strip) {
+            $client->setStripPath($strip);
+            if (!$project) {
+                $client->setProjectRoot("{$strip}/app");
+            }
+            return;
+        }
+
+        if ($project) {
+            if ($base && substr($project, 0, strlen($base)) === $base) {
+                $client->setStripPath($base);
+            }
+            $client->setProjectRoot($project);
+            return;
+        }
+
+        $client->setStripPath($base);
+        $client->setProjectRoot($path);
+    }
+
+    /**
      * Get the services provided by the provider.
      *
      * @author Morten Rugaard <moru@nodes.dk>
@@ -167,6 +233,6 @@ class ServiceProvider extends IlluminateServiceProvider
      */
     public function provides()
     {
-        return ['nodes.bugsnag'];
+        return ['nodes.bugsnag', 'bugsnag.logger', 'bugsnag.multi'];
     }
 }

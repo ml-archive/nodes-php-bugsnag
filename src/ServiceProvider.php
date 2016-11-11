@@ -9,9 +9,9 @@ use Bugsnag\Configuration;
 use Bugsnag\PsrLogger\MultiLogger;
 use Bugsnag\Report;
 use Illuminate\Contracts\Container\Container;
-use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\ServiceProvider as IlluminateServiceProvider;
 use Nodes\Bugsnag\Exceptions\Handler as BugsnagHandler;
 
 /**
@@ -101,25 +101,25 @@ class ServiceProvider extends IlluminateServiceProvider
             $bugsnag->setReleaseStage($app->environment());
             $bugsnag->setBatchSending(false);
             $bugsnag->setNotifier([
-                'name' => 'Nodes Bugsnag Laravel',
+                'name'    => 'Nodes Bugsnag Laravel',
                 'version' => self::VERSION,
-                'url' => 'http://packagist.com/nodes/bugsnag',
+                'url'     => 'http://packagist.com/nodes/bugsnag',
             ]);
 
             // Set notify release stages
-            if (! empty($config['notify_release_stages'])) {
+            if (!empty($config['notify_release_stages'])) {
                 $bugsnag->setNotifyReleaseStages((array) $config['notify_release_stages']);
             }
 
             // Set filters
-            if (! empty($config['filters'])) {
+            if (!empty($config['filters'])) {
                 $bugsnag->setFilters((array) $config['filters']);
             }
 
             $bugsnag->registerDefaultCallbacks();
 
             // Attach user agent data to all exceptions
-            $bugsnag->registerCallback(function(Report $report) {
+            $bugsnag->registerCallback(function (Report $report) {
                 $report->setMetaData(['User Agent' => $this->gatherUserAgentData()]);
             });
 
@@ -153,11 +153,11 @@ class ServiceProvider extends IlluminateServiceProvider
 
         // Retrieve original user agent
         $originalUserAgent = user_agent();
-        if (! empty($originalUserAgent)) {
+        if (!empty($originalUserAgent)) {
             $userAgents['original'] = [
-                'browser' => $originalUserAgent->getBrowserWithVersion(),
+                'browser'  => $originalUserAgent->getBrowserWithVersion(),
                 'platform' => $originalUserAgent->getPlatform(),
-                'device' => $originalUserAgent->getDevice(),
+                'device'   => $originalUserAgent->getDevice(),
                 'isMobile' => $originalUserAgent->isMobile(),
                 'isTablet' => $originalUserAgent->isTablet(),
             ];
@@ -165,11 +165,11 @@ class ServiceProvider extends IlluminateServiceProvider
 
         // Retrieve nodes user agent
         $nodesUserAgent = nodes_meta();
-        if (! empty($nodesUserAgent)) {
+        if (!empty($nodesUserAgent)) {
             $userAgents['nodes_meta'] = [
-                'version' => $nodesUserAgent->getVersion(),
+                'version'  => $nodesUserAgent->getVersion(),
                 'platform' => $nodesUserAgent->getPlatform(),
-                'device' => $nodesUserAgent->getDevice(),
+                'device'   => $nodesUserAgent->getDevice(),
             ];
         }
 
@@ -178,9 +178,10 @@ class ServiceProvider extends IlluminateServiceProvider
 
     /**
      * Get the guzzle client instance.
-     * from bugsnag/bugsnag-laravel package
+     * from bugsnag/bugsnag-laravel package.
      *
      * @param array $config
+     *
      * @return \GuzzleHttp\ClientInterface
      */
     protected function getGuzzle(array $config)
@@ -192,18 +193,20 @@ class ServiceProvider extends IlluminateServiceProvider
             }
             $options['proxy'] = $config['proxy'];
         }
+
         return Client::makeGuzzle(isset($config['endpoint']) ? $config['endpoint'] : null, $options);
     }
 
     /**
      * Setup the client paths.
-     * from bugsnag/bugsnag-laravel package
+     * from bugsnag/bugsnag-laravel package.
      *
      * @param \Bugsnag\Client $client
      * @param string          $base
      * @param string          $path
      * @param string|null     $strip
      * @param string|null     $project
+     *
      * @return void
      */
     protected function setupPaths(Client $client, $base, $path, $strip, $project)
@@ -213,6 +216,7 @@ class ServiceProvider extends IlluminateServiceProvider
             if (!$project) {
                 $client->setProjectRoot("{$strip}/app");
             }
+
             return;
         }
 
@@ -221,6 +225,7 @@ class ServiceProvider extends IlluminateServiceProvider
                 $client->setStripPath($base);
             }
             $client->setProjectRoot($project);
+
             return;
         }
 
@@ -230,11 +235,10 @@ class ServiceProvider extends IlluminateServiceProvider
 
     /**
      * Register an event listener to trigger
-     * on failed jobs from queues
+     * on failed jobs from queues.
      *
      * @author Rasmus Ebbesen <re@nodes.dk>
      *
-     * @access protected
      * @return void
      */
     protected function registerFailedJobsListener()
@@ -246,20 +250,20 @@ class ServiceProvider extends IlluminateServiceProvider
         $shouldReport = config('nodes.bugsnag.report_failed_jobs');
 
         if ($shouldReport) {
-            Queue::failing(function(JobFailed $event) {
+            Queue::failing(function (JobFailed $event) {
                 $exception = $event->exception;
                 $meta = [
                     'job' => [
-                        'name' => $event->job->getName(),
-                        'queue' => $event->job->getQueue(),
+                        'name'     => $event->job->getName(),
+                        'queue'    => $event->job->getQueue(),
                         'raw_body' => $event->job->getRawBody(),
                     ],
                     'connection' => [
                         'name' => $event->connectionName,
-                    ]
+                    ],
                 ];
 
-                app('nodes.bugsnag')->notifyException($exception, function(\Bugsnag\Report $report) use ($meta) {
+                app('nodes.bugsnag')->notifyException($exception, function (\Bugsnag\Report $report) use ($meta) {
                     $report->setMetaData($meta, true);
                 });
             });

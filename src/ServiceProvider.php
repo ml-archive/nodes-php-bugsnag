@@ -149,7 +149,7 @@ class ServiceProvider extends IlluminateServiceProvider
     protected function gatherUserAgentData()
     {
         // User agent container
-        $userAgents = ['original' => null, 'nodes' => null];
+        $userAgents = ['original' => null, 'nodes_meta' => null];
 
         // Retrieve original user agent
         $originalUserAgent = user_agent();
@@ -164,13 +164,12 @@ class ServiceProvider extends IlluminateServiceProvider
         }
 
         // Retrieve nodes user agent
-        $nodesUserAgent = nodes_user_agent();
+        $nodesUserAgent = nodes_meta();
         if (! empty($nodesUserAgent)) {
-            $userAgents['nodes'] = [
+            $userAgents['nodes_meta'] = [
                 'version' => $nodesUserAgent->getVersion(),
                 'platform' => $nodesUserAgent->getPlatform(),
                 'device' => $nodesUserAgent->getDevice(),
-                'debug' => $nodesUserAgent->getDebug(),
             ];
         }
 

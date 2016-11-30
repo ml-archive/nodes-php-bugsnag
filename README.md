@@ -29,14 +29,14 @@ You must then modify your `composer.json` file and run `composer update` to incl
 
 ```json
 "require": {
-    "nodes/bugsnag": "^1.0"
+    "nodes/bugsnag": "^2.0"
 }
 ```
 
 Or you can run the composer require command from your terminal.
 
 ```bash
-composer require nodes/bugsnag:^1.0
+composer require nodes/bugsnag:^2.0
 ```
 
 ## 🔧 Setup

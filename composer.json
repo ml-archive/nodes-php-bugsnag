@@ -14,8 +14,13 @@
     "homepage": "http://nodesagency.com",
     "authors": [
         {
-            "name": "Morten Rugaard",
-            "email": "moru@nodes.dk",
+            "name": "Casper Rasmussen",
+            "email": "cr@nodes.dk",
+            "role": "CTO & Partner"
+        },
+        {
+            "name": "Rasmus Ebbesen",
+            "email": "re@nodes.dk",
             "role": "Developer"
         }
     ],

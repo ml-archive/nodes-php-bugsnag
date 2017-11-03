@@ -72,7 +72,7 @@ It happens once in a while, that you might need to `try {} catch {}` stuff and w
 but you would actually also like to be notified about it in Bugsnag. Then you can use the global helper method `bugsnag_report` to that.
 
 ```php
-function bugsnag_report(\Exception $exception)
+function bugsnag_report(\Exception $exception, $meta = [], $severity = null)
 ```
 
 ## 🏆 Credits

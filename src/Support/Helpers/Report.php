@@ -5,10 +5,11 @@ if (!function_exists('bugsnag_report')) {
      * Report exception to Bugsnag.
      *
      * @author Casper Rasmussen <cr@nodes.dk>
-     * @access public
+     *
      * @param       $exception
      * @param array $meta
      * @param null  $severity
+     *
      * @return void
      */
     function bugsnag_report($exception, $meta = [], $severity = null)
@@ -50,9 +51,11 @@ if (!function_exists('leave_breadcrumb')) {
      * Leave a breadcrumb for Bugsnag.
      *
      * @author Rasmus Ebbesen <re@nodes.dk>
+     *
      * @param string $name
      * @param string $type
      * @param array  $metaData
+     *
      * @see    https://docs.bugsnag.com/platforms/php/laravel/#logging-breadcrumbs
      */
     function leave_breadcrumb($name, $type = \Bugsnag\Breadcrumbs\Breadcrumb::ERROR_TYPE, array $metaData = [])

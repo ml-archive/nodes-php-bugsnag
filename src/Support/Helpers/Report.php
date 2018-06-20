@@ -14,7 +14,13 @@ if (!function_exists('bugsnag_report')) {
      */
     function bugsnag_report($exception, $meta = [], $severity = null)
     {
+        // Do not continue if release stage is not set
         if (!in_array(app()->environment(), config('nodes.bugsnag.notify_release_stages', []))) {
+            return;
+        }
+
+        // Do not continue if exception is ignored
+        if (in_array(get_class($exception), config('nodes.bugsnag.ignore_exceptions', []))) {
             return;
         }
 

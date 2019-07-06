@@ -15,27 +15,39 @@ class Handler extends AppHandler
     /**
      * Report exception to bugsnag.
      *
+     * @param \Exception $e
+     * @return void
+     * @author Rasmus Ebbesen <re@nodes.dk>
      * @author Casper Rasmussen <cr@nodes.dk>
      * @author Morten Rugaard <moru@nodes.dk>
-     * @author Rasmus Ebbesen <re@nodes.dk>
-     *
-     * @param \Exception $e
-     *
-     * @return void
      */
     public function report(Exception $e)
     {
         try {
-            if ($e instanceof NodesException && $e->getReport()) {
+            // NodesExceptions have extra attributes
+            if ($e instanceof NodesException) {
+
+                // Check if exception is marked to be reported
+                if (!$e->getReport()) {
+                    return;
+                }
+
                 app('nodes.bugsnag')->notifyException($e, function (Report $report) use ($e) {
                     $report->setMetaData($e->getMeta(), true);
                     $report->setSeverity($e->getSeverity());
                 });
-            } elseif (!$e instanceof NodesException && $this->shouldReport($e)) {
-                app('nodes.bugsnag')->notifyException($e, function (Report $report) {
-                    $report->setSeverity('error');
-                });
+
+                return;
             }
+
+            // Check if the exception should be reported at all!
+            if (!$this->shouldReport($e)) {
+                return;
+            }
+
+            app('nodes.bugsnag')->notifyException($e, function (Report $report) {
+                $report->setSeverity('error');
+            });
         } catch (Exception $e) {
             // Do nothing
         }

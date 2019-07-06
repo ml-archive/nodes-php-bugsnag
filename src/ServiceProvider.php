@@ -29,20 +29,12 @@ class ServiceProvider extends IlluminateServiceProvider
     /**
      * Bootstrap the application service.
      *
-     * @author Morten Rugaard <moru@nodes.dk>
-     *
      * @return void
+     * @author Morten Rugaard <moru@nodes.dk>
      */
     public function boot()
     {
-        // If current environment is in the array of "notify release stages",
-        // we'll re-bind the default Exception Handler to use our Bugsnag Handler
-        // so exceptions will be reported to Bugsnag.
-        if (in_array($this->app->environment(), config('nodes.bugsnag.notify_release_stages', []))) {
-            $this->app->singleton('Illuminate\Contracts\Debug\ExceptionHandler', function ($app) {
-                return app(BugsnagHandler::class);
-            });
-        }
+        $this->registerHandler();
 
         // Register publish groups
         $this->publishGroups();
@@ -54,9 +46,8 @@ class ServiceProvider extends IlluminateServiceProvider
     /**
      * Register the service provider.
      *
-     * @author Morten Rugaard <moru@nodes.dk>
-     *
      * @return void
+     * @author Morten Rugaard <moru@nodes.dk>
      */
     public function register()
     {
@@ -66,25 +57,23 @@ class ServiceProvider extends IlluminateServiceProvider
     /**
      * Register publish groups.
      *
-     * @author Morten Rugaard <moru@nodes.dk>
-     *
      * @return void
+     * @author Morten Rugaard <moru@nodes.dk>
      */
     protected function publishGroups()
     {
         // Config files
         $this->publishes([
-            __DIR__.'/../config/bugsnag.php' => config_path('nodes/bugsnag.php'),
+            __DIR__ . '/../config/bugsnag.php' => config_path('nodes/bugsnag.php'),
         ], 'config');
     }
 
     /**
      * Register Bugsnag instance.
      *
-     * @author Morten Rugaard <moru@nodes.dk>
-     * @author Rasmus Ebbesen <re@nodes.dk>
-     *
      * @return void
+     * @author Rasmus Ebbesen <re@nodes.dk>
+     * @author Morten Rugaard <moru@nodes.dk>
      */
     protected function registerBugsnag()
     {
@@ -96,7 +85,8 @@ class ServiceProvider extends IlluminateServiceProvider
 
         $this->app->singleton('nodes.bugsnag', function (Container $app) use ($config) {
             // Retrieve bugsnag settings
-            $bugsnag = new Client(new Configuration($config['api_key']), new LaravelResolver($app), $this->getGuzzle($config));
+            $bugsnag = new Client(new Configuration($config['api_key']), new LaravelResolver($app),
+                $this->getGuzzle($config));
             $this->setupPaths($bugsnag, $app->basePath(), $app->path(), base_path(), app_path());
             $bugsnag->setReleaseStage($app->environment());
             $bugsnag->setBatchSending(false);
@@ -108,12 +98,12 @@ class ServiceProvider extends IlluminateServiceProvider
 
             // Set notify release stages
             if (!empty($config['notify_release_stages'])) {
-                $bugsnag->setNotifyReleaseStages((array) $config['notify_release_stages']);
+                $bugsnag->setNotifyReleaseStages((array)$config['notify_release_stages']);
             }
 
             // Set filters
             if (!empty($config['filters'])) {
-                $bugsnag->setFilters((array) $config['filters']);
+                $bugsnag->setFilters((array)$config['filters']);
             }
 
             $bugsnag->registerDefaultCallbacks();
@@ -142,9 +132,8 @@ class ServiceProvider extends IlluminateServiceProvider
     /**
      * Gather user agent data.
      *
-     * @author Morten Rugaard <moru@nodes.dk>
-     *
      * @return array
+     * @author Morten Rugaard <moru@nodes.dk>
      */
     protected function gatherUserAgentData()
     {
@@ -181,7 +170,6 @@ class ServiceProvider extends IlluminateServiceProvider
      * from bugsnag/bugsnag-laravel package.
      *
      * @param array $config
-     *
      * @return \GuzzleHttp\ClientInterface
      */
     protected function getGuzzle(array $config)
@@ -206,7 +194,6 @@ class ServiceProvider extends IlluminateServiceProvider
      * @param string          $path
      * @param string|null     $strip
      * @param string|null     $project
-     *
      * @return void
      */
     protected function setupPaths(Client $client, $base, $path, $strip, $project)
@@ -237,9 +224,8 @@ class ServiceProvider extends IlluminateServiceProvider
      * Register an event listener to trigger
      * on failed jobs from queues.
      *
-     * @author Rasmus Ebbesen <re@nodes.dk>
-     *
      * @return void
+     * @author Rasmus Ebbesen <re@nodes.dk>
      */
     protected function registerFailedJobsListener()
     {
@@ -247,35 +233,56 @@ class ServiceProvider extends IlluminateServiceProvider
             return;
         }
 
-        $shouldReport = config('nodes.bugsnag.report_failed_jobs');
-
-        if ($shouldReport) {
-            Queue::failing(function (JobFailed $event) {
-                $exception = $event->exception;
-                $meta = [
-                    'job' => [
-                        'name'     => $event->job->getName(),
-                        'queue'    => $event->job->getQueue(),
-                        'raw_body' => $event->job->getRawBody(),
-                    ],
-                    'connection' => [
-                        'name' => $event->connectionName,
-                    ],
-                ];
-
-                app('nodes.bugsnag')->notifyException($exception, function (\Bugsnag\Report $report) use ($meta) {
-                    $report->setMetaData($meta, true);
-                });
-            });
+        if (!config('nodes.bugsnag.report_failed_jobs', true)) {
+            return;
         }
+
+        Queue::failing(function (JobFailed $event) {
+            $exception = $event->exception;
+            $meta = [
+                'job'        => [
+                    'name'     => $event->job->getName(),
+                    'queue'    => $event->job->getQueue(),
+                    'raw_body' => $event->job->getRawBody(),
+                ],
+                'connection' => [
+                    'name' => $event->connectionName,
+                ],
+            ];
+
+            app('nodes.bugsnag')->notifyException($exception, function (\Bugsnag\Report $report) use ($meta) {
+                $report->setMetaData($meta, true);
+            });
+        });
+    }
+
+    /**
+     * registerHandler
+     * we'll re-bind the default Exception Handler to use our Bugsnag Handler
+     * so exceptions will be reported to Bugsnag.
+     *
+     * @author Casper Rasmussen <cr@nodes.dk>
+     */
+    protected function registerHandler()
+    {
+        if (!in_array($this->app->environment(), config('nodes.bugsnag.notify_release_stages', []))) {
+            return;
+        }
+
+        if (!config('nodes.bugsnag.rebind_handler', true)) {
+            return;
+        }
+
+        $this->app->singleton('Illuminate\Contracts\Debug\ExceptionHandler', function ($app) {
+            return app(BugsnagHandler::class);
+        });
     }
 
     /**
      * Get the services provided by the provider.
      *
-     * @author Morten Rugaard <moru@nodes.dk>
-     *
      * @return array
+     * @author Morten Rugaard <moru@nodes.dk>
      */
     public function provides()
     {

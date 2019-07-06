@@ -42,7 +42,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Rebind handler from this package
-    | It possible to set this false, and just extend it from App/Exception/Handler
+    | It possible to set this false and just handle the report in App/Exceptions/Handler
     |
     */
     'rebind_handler' => true,

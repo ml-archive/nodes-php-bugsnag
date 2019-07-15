@@ -16,7 +16,9 @@ class Handler extends AppHandler
      * Report exception to bugsnag.
      *
      * @param \Exception $e
+     *
      * @return void
+     *
      * @author Rasmus Ebbesen <re@nodes.dk>
      * @author Casper Rasmussen <cr@nodes.dk>
      * @author Morten Rugaard <moru@nodes.dk>

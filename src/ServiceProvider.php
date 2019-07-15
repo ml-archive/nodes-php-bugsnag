@@ -30,6 +30,7 @@ class ServiceProvider extends IlluminateServiceProvider
      * Bootstrap the application service.
      *
      * @return void
+     *
      * @author Morten Rugaard <moru@nodes.dk>
      */
     public function boot()
@@ -47,6 +48,7 @@ class ServiceProvider extends IlluminateServiceProvider
      * Register the service provider.
      *
      * @return void
+     *
      * @author Morten Rugaard <moru@nodes.dk>
      */
     public function register()
@@ -58,13 +60,14 @@ class ServiceProvider extends IlluminateServiceProvider
      * Register publish groups.
      *
      * @return void
+     *
      * @author Morten Rugaard <moru@nodes.dk>
      */
     protected function publishGroups()
     {
         // Config files
         $this->publishes([
-            __DIR__ . '/../config/bugsnag.php' => config_path('nodes/bugsnag.php'),
+            __DIR__.'/../config/bugsnag.php' => config_path('nodes/bugsnag.php'),
         ], 'config');
     }
 
@@ -72,6 +75,7 @@ class ServiceProvider extends IlluminateServiceProvider
      * Register Bugsnag instance.
      *
      * @return void
+     *
      * @author Rasmus Ebbesen <re@nodes.dk>
      * @author Morten Rugaard <moru@nodes.dk>
      */
@@ -98,12 +102,12 @@ class ServiceProvider extends IlluminateServiceProvider
 
             // Set notify release stages
             if (!empty($config['notify_release_stages'])) {
-                $bugsnag->setNotifyReleaseStages((array)$config['notify_release_stages']);
+                $bugsnag->setNotifyReleaseStages((array) $config['notify_release_stages']);
             }
 
             // Set filters
             if (!empty($config['filters'])) {
-                $bugsnag->setFilters((array)$config['filters']);
+                $bugsnag->setFilters((array) $config['filters']);
             }
 
             $bugsnag->registerDefaultCallbacks();
@@ -133,6 +137,7 @@ class ServiceProvider extends IlluminateServiceProvider
      * Gather user agent data.
      *
      * @return array
+     *
      * @author Morten Rugaard <moru@nodes.dk>
      */
     protected function gatherUserAgentData()
@@ -170,6 +175,7 @@ class ServiceProvider extends IlluminateServiceProvider
      * from bugsnag/bugsnag-laravel package.
      *
      * @param array $config
+     *
      * @return \GuzzleHttp\ClientInterface
      */
     protected function getGuzzle(array $config)
@@ -194,6 +200,7 @@ class ServiceProvider extends IlluminateServiceProvider
      * @param string          $path
      * @param string|null     $strip
      * @param string|null     $project
+     *
      * @return void
      */
     protected function setupPaths(Client $client, $base, $path, $strip, $project)
@@ -225,6 +232,7 @@ class ServiceProvider extends IlluminateServiceProvider
      * on failed jobs from queues.
      *
      * @return void
+     *
      * @author Rasmus Ebbesen <re@nodes.dk>
      */
     protected function registerFailedJobsListener()
@@ -282,6 +290,7 @@ class ServiceProvider extends IlluminateServiceProvider
      * Get the services provided by the provider.
      *
      * @return array
+     *
      * @author Morten Rugaard <moru@nodes.dk>
      */
     public function provides()
